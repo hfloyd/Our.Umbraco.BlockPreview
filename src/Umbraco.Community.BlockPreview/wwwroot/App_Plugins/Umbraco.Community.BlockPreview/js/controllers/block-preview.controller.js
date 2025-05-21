@@ -6,6 +6,11 @@
                 return v.active;
             });
 
+            // Property actions:
+            var propertyActions = null;
+            var enterSortModeAction = null;
+            var exitSortModeAction = null;
+          
             $scope.nodeKey = current.key;
 
             if (active !== null) {
@@ -19,6 +24,7 @@
             $scope.documentTypeKey = current.documentType.key;
             $scope.loading = true;
             $scope.markup = $sce.trustAsHtml('<div class="preview-alert preview-alert-info">Loading preview</div>');
+
 
             // There must be a better way to do this...
             $scope.blockEditorAlias = '';
@@ -45,7 +51,31 @@
                         $scope.blockEditorAlias = parent.vm.model.alias;
                         $scope.modelValue = parent.vm.model.value;
                         $scope.isList = true;
+
+                        enterSortModeAction = {
+                            labelKey: 'blockEditor_actionEnterSortMode',
+                            icon: 'navigation-vertical',
+                            method: enableSortMode,
+                            isDisabled: false
+                        };
+                        exitSortModeAction = {
+                            labelKey: 'blockEditor_actionExitSortMode',
+                            icon: 'navigation-vertical',
+                            method: exitSortMode,
+                            isDisabled: false
+                        };
                         break;
+                    }
+
+                    propertyActions = [
+                        enterSortModeAction
+                    ];
+
+                    parent.vm.sortMode = false;
+                    parent.vm.sortModeView = "/App_Plugins/Umbraco.Community.BlockPreview/views/sortblock/sortblock.editor.html";
+
+                    if (parent.vm.umbProperty) {
+                        parent.vm.umbProperty.setPropertyActions(propertyActions);
                     }
                 }
 
@@ -63,6 +93,8 @@
                 }
 
                 parent = parent.$parent;
+
+               
             }
 
             parent = $scope.$parent;
@@ -75,6 +107,23 @@
                 }
 
                 parent = parent.$parent;
+            }
+
+            function enableSortMode() {
+                parent.vm.sortMode = true;
+                propertyActions.splice(propertyActions.indexOf(enterSortModeAction), 1, exitSortModeAction);
+                if (parent.vm.umbProperty) {
+                    parent.vm.umbProperty.setPropertyActions(propertyActions);
+                }
+            }
+
+            parent.vm.exitSortMode = exitSortMode;
+            function exitSortMode() {
+                parent.vm.sortMode = false;
+                propertyActions.splice(propertyActions.indexOf(exitSortModeAction), 1, enterSortModeAction);
+                if (parent.vm.umbProperty) {
+                    parent.vm.umbProperty.setPropertyActions(propertyActions);
+                }
             }
 
             function loadPreview() {
